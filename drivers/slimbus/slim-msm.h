@@ -369,7 +369,7 @@ enum {
 } while (0)
 
 #define SLIM_INFO(dev, x...) do { \
-	pr_debug(x); \
+	pr_info(x); \
 	if (dev->ipc_slimbus_log && dev->ipc_log_mask >= INFO_LEV) {\
 		ipc_log_string(dev->ipc_slimbus_log, x); \
 	} \
