@@ -336,7 +336,7 @@ void dwc3_ep0_out_start(struct dwc3 *dwc)
 {
 	int				ret;
 
-	dwc3_ep0_start_trans(dwc, 0, dwc->ctrl_req_addr, 8,
+	dwc3_ep0_prepare_one_trb(dwc, 0, dwc->ctrl_req_addr, 8,
 			DWC3_TRBCTL_CONTROL_SETUP, false);
 	ret = dwc3_ep0_start_trans(dwc, 0);
 
@@ -927,7 +927,7 @@ static void dwc3_ep0_complete_data(struct dwc3 *dwc,
 
 			dwc->ep0_next_event = DWC3_EP0_COMPLETE;
 
-			dwc3_ep0_start_trans(dwc, epnum,
+			dwc3_ep0_prepare_one_trb(dwc, epnum,
 					dwc->ctrl_req_addr, 0,
 					DWC3_TRBCTL_CONTROL_DATA, false);
 			ret = dwc3_ep0_start_trans(dwc, epnum);
