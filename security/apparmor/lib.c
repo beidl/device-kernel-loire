@@ -521,4 +521,3 @@ const char *aa_peer_name(struct aa_profile *peer)
 
 	return peer->base.hname;
 }
-
