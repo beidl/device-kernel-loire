@@ -1770,7 +1770,7 @@ int ipa3_release_gsi_channel(u32 clnt_hdl)
 		IPA_ACTIVE_CLIENTS_INC_EP(ipa3_get_client_mapping(clnt_hdl));
 
 	/* Set the disconnect in progress flag to avoid calling cb.*/
-	spin_lock(&ipa3_ctx->disconnect_lock);
+        spin_lock(&ipa3_ctx->disconnect_lock);
 	ep->disconnect_in_progress = true;
 	spin_unlock(&ipa3_ctx->disconnect_lock);
 
