@@ -51,7 +51,9 @@
 
 #include <net/bluetooth/bluesleep.h>
 
+#ifdef CONFIG_BT_BCM43XX
 #include "bcm43xx.h"
+#endif
 #define VERSION "2.3"
 
 static const struct hci_uart_proto *hup[HCI_UART_MAX_PROTO];
@@ -174,11 +176,13 @@ restart:
 	while ((skb = hci_uart_dequeue(hu))) {
 		int len;
 
+#ifdef CONFIG_BT_BCM43XX
 		if(!bcm43xx_may_use_bluesleep()) {
 			/* device has been shutdown */
 			clear_bit(HCI_UART_SENDING, &hu->tx_state);
 			return;
 		}
+#endif
 
 		set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
 
@@ -186,7 +190,9 @@ restart:
 
 		len = tty->ops->write(tty, skb->data, skb->len);
 
+#ifdef CONFIG_BT_BCM43XX
 		bcm43xx_done_accessing_bluesleep();
+#endif
 
 		hdev->stat.byte_tx += len;
 
