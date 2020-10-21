@@ -268,7 +268,6 @@ static int somc_wifi_get_mac_addr(unsigned char *buf)
 	int ret = 0;
 
 	char macasc[128] = {0,};
-	uint rand_mac;
 	static unsigned char mymac[ETHER_ADDR_LEN] = {0,};
 	const unsigned char nullmac[ETHER_ADDR_LEN] = {0,};
 
@@ -310,14 +309,17 @@ random_mac:
 		return 0;
 	}
 
-	prandom_seed((uint)jiffies);
-	rand_mac = prandom_u32();
-	buf[0] = 0x00;
-	buf[1] = 0x90;
-	buf[2] = 0x4c;
-	buf[3] = (unsigned char)rand_mac;
-	buf[4] = (unsigned char)(rand_mac >> 8);
-	buf[5] = (unsigned char)(rand_mac >> 16);
+	/* UT specific: the first call to this function is before the MAC is set
+	   and will be used as the "permanent address". NetworkManager uses this
+	   to distinguish between interfaces, unless it's "invalid" like all 0x00
+	   or 0xFF. Putting a random MAC here will confuse NM, thus put all 0xFF
+	   instead so that NM will failback to normal interface MAC address. */
+	buf[0] = 0xFF;
+	buf[1] = 0xFF;
+	buf[2] = 0xFF;
+	buf[3] = 0xFF;
+	buf[4] = 0xFF;
+	buf[5] = 0xFF;
 
 	memcpy(mymac, buf, 6);
 
