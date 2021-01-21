@@ -258,7 +258,9 @@ static struct cpu_operations msm_cortex_a_ops = {
 #ifdef CONFIG_HOTPLUG_CPU
 	.cpu_die        = msm_wfi_cpu_die,
 #endif
+#ifdef CONFIG_ARM64_CPU_SUSPEND
 	.cpu_suspend       = msm_pm_collapse,
+#endif
 };
 CPU_METHOD_OF_DECLARE(msm_cortex_a_ops,
 	"qcom,arm-cortex-acc", &msm_cortex_a_ops);

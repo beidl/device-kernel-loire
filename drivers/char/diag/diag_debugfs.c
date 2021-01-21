@@ -178,6 +178,7 @@ static ssize_t diag_dbgfs_read_dcistats(struct file *file,
 		bytes_in_buf += bytes_written;
 		bytes_remaining -= bytes_written;
 #endif
+#ifdef CONFIG_PM_SLEEP
 		bytes_written = scnprintf(buf+bytes_in_buf,
 					  bytes_remaining,
 					  "dci power: active, relax: %lu, %lu\n",
@@ -187,6 +188,7 @@ static ssize_t diag_dbgfs_read_dcistats(struct file *file,
 						power.wakeup->relax_count);
 		bytes_in_buf += bytes_written;
 		bytes_remaining -= bytes_written;
+#endif
 
 	}
 	temp_data += diag_dbgfs_dci_data_index;
@@ -226,8 +228,10 @@ static ssize_t diag_dbgfs_read_dcistats(struct file *file,
 static ssize_t diag_dbgfs_read_power(struct file *file, char __user *ubuf,
 				     size_t count, loff_t *ppos)
 {
+	int ret = 0;
+
+#ifdef CONFIG_PM_SLEEP
 	char *buf;
-	int ret;
 	unsigned int buf_size;
 
 	buf = kzalloc(sizeof(char) * DEBUG_BUF_SIZE, GFP_KERNEL);
@@ -258,6 +262,8 @@ static ssize_t diag_dbgfs_read_power(struct file *file, char __user *ubuf,
 	ret = simple_read_from_buffer(ubuf, count, ppos, buf, ret);
 
 	kfree(buf);
+#endif
+
 	return ret;
 }
 

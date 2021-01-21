@@ -382,6 +382,7 @@ static long fpc1145_device_ioctl(struct file *fp,
 	return rc;
 }
 
+#ifdef CONFIG_PM_SLEEP
 static int fpc1145_device_suspend(struct device *dev)
 {
 	struct fpc1145_data *fpc1145 = dev_get_drvdata(dev);
@@ -408,6 +409,7 @@ static int fpc1145_device_resume(struct device *dev)
 
 	return 0;
 }
+#endif
 
 static const struct file_operations fpc1145_device_fops = {
 	.owner = THIS_MODULE,
@@ -620,15 +622,19 @@ static struct of_device_id fpc1145_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, fpc1145_of_match);
 
+#ifdef CONFIG_PM_SLEEP
 static SIMPLE_DEV_PM_OPS(fpc1145_pm_ops, fpc1145_device_suspend,
 			 fpc1145_device_resume);
+#endif
 
 static struct platform_driver fpc1145_driver = {
 	.driver = {
 		.name = "fpc1145",
 		.owner = THIS_MODULE,
 		.of_match_table = fpc1145_of_match,
+#ifdef CONFIG_PM_SLEEP
 		.pm = &fpc1145_pm_ops,
+#endif
 	},
 	.probe = fpc1145_probe,
 	.remove = fpc1145_remove,
