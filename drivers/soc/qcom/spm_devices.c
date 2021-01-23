@@ -127,6 +127,9 @@ int msm_spm_set_vdd(unsigned int cpu, unsigned int vlevel)
 	if (ret)
 		return ret;
 
+	if (!has_online_cpu_with_mask(&dev->mask, cpu))
+		return -EPROBE_DEFER;
+
 	info.vctl_dev = dev;
 	info.vlevel = vlevel;
 
