@@ -772,3 +772,22 @@ void wake_up_all_idle_cpus(void)
 	preempt_enable();
 }
 EXPORT_SYMBOL_GPL(wake_up_all_idle_cpus);
+
+bool has_online_cpu_with_mask(const struct cpumask *mask, unsigned int cpu)
+{
+	unsigned int search_cpu;
+	const struct cpumask *nodemask;
+	bool found_online = false;
+
+	nodemask = cpumask_of_node(cpu_to_node(cpu));
+	for (search_cpu = cpumask_first_and(nodemask, mask); search_cpu < nr_cpu_ids;
+	     search_cpu = cpumask_next_and(search_cpu, nodemask, mask)) {
+		if (cpu_online(search_cpu)) {
+			found_online = true;
+			break;
+		}
+	}
+
+	return found_online;
+}
+EXPORT_SYMBOL_GPL(has_online_cpu_with_mask);
