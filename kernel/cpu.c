@@ -22,7 +22,6 @@
 #include <linux/lockdep.h>
 #include <linux/tick.h>
 #include <linux/irq.h>
-#include <linux/cpuset.h>
 #include <trace/events/power.h>
 
 #include <trace/events/sched.h>
@@ -588,8 +587,6 @@ int cpu_up(unsigned int cpu)
 	}
 
 	err = _cpu_up(cpu, 0);
-	if (!err)
-		cpuset_wait_for_hotplug();
 
 out:
 	cpu_maps_update_done();
