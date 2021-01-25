@@ -101,7 +101,6 @@ int smp_call_function_any(const struct cpumask *mask,
 
 void kick_all_cpus_sync(void);
 void wake_up_all_idle_cpus(void);
-bool has_online_cpu_with_mask(const struct cpumask *mask, unsigned int cpu);
 
 /*
  * Generic and arch helpers
@@ -151,11 +150,6 @@ smp_call_function_any(const struct cpumask *mask, smp_call_func_t func,
 
 static inline void kick_all_cpus_sync(void) {  }
 static inline void wake_up_all_idle_cpus(void) {  }
-static inline bool has_online_cpu_with_mask(const struct cpumask *mask,
-					     unsigned int cpu)
-{
-	return true;
-}
 
 #ifdef CONFIG_UP_LATE_INIT
 extern void __init up_late_init(void);
