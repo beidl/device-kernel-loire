@@ -536,11 +536,14 @@ static inline int sensor_set_trip(uint32_t sensor_id,
 static inline int sensor_cancel_trip(uint32_t sensor_id,
 		struct sensor_threshold *threshold)
 { return -ENODEV;}
+static inline int sensor_activate_trip(uint32_t sensor_id, struct sensor_threshold *threshold,
+		bool enable)
+{ return -ENODEV;}
 
 static inline int thermal_sensor_trip(struct thermal_zone_device *tz,
 		enum thermal_trip_type trip, unsigned long temp)
 { return -ENODEV;}
-static inline int sensor_get_temp(uint32_t sensor_id, long *temp)
+static inline int sensor_get_temp(uint32_t sensor_id, int *temp)
 { return -ENODEV;}
 
 #endif /* CONFIG_THERMAL */
