@@ -231,6 +231,9 @@ static void dbs_timer(struct work_struct *work)
 
 	policy = shared->policy;
 
+	if (!cpufreq_can_do_remote_dvfs(policy_dbs->policy))
+		return;
+
 	/*
 	 * Governor might already be disabled and there is no point continuing
 	 * with the work-handler.
