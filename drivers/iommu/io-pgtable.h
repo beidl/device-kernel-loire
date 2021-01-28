@@ -62,6 +62,8 @@ struct io_pgtable_cfg {
 	 */
 	#define IO_PGTABLE_QUIRK_ARM_NS	(1 << 0)	/* Set NS bit in PTEs */
 	#define IO_PGTABLE_QUIRK_PAGE_TABLE_COHERENT (1 << 1)
+	#define IO_PGTABLE_QUIRK_QCOM_USE_UPSTREAM_HINT	(1 << 2)
+	#define IO_PGTABLE_QUIRK_QSMMUV500_NON_SHAREABLE (1 << 3)
 	int				quirks;
 	unsigned long			pgsize_bitmap;
 	unsigned int			ias;
