@@ -1173,6 +1173,8 @@ static int _init_global_pt(struct kgsl_mmu *mmu, struct kgsl_pagetable *pt)
 	unsigned int cb_num;
 	struct kgsl_iommu *iommu = _IOMMU_PRIV(mmu);
 	struct kgsl_iommu_context *ctx = &iommu->ctx[KGSL_IOMMU_CONTEXT_USER];
+	int gpuhtw_llc_enable = 1;
+	int stall_disable = 1;
 
 	iommu_pt = _alloc_pt(ctx->dev, mmu, pt);
 
@@ -1187,6 +1189,20 @@ static int _init_global_pt(struct kgsl_mmu *mmu, struct kgsl_pagetable *pt)
 					ret);
 			goto done;
 		}
+	}
+
+	ret = iommu_domain_set_attr(iommu_pt->domain,
+			DOMAIN_ATTR_USE_UPSTREAM_HINT, &gpuhtw_llc_enable);
+	if (ret) {
+		KGSL_CORE_ERR("set DOMAIN_ATTR_USE_UPSTREAM_HINT failed: %d\n", ret);
+		goto done;
+	}
+
+	ret = iommu_domain_set_attr(iommu_pt->domain,
+			DOMAIN_ATTR_CB_STALL_DISABLE, &stall_disable);
+	if (ret) {
+		KGSL_CORE_ERR("set DOMAIN_ATTR_CB_STALL_DISABLE failed: %d\n", ret);
+		goto done;
 	}
 
 	ret = _attach_pt(iommu_pt, ctx);
@@ -1240,6 +1256,8 @@ static int _init_secure_pt(struct kgsl_mmu *mmu, struct kgsl_pagetable *pt)
 	struct kgsl_iommu_context *ctx = &iommu->ctx[KGSL_IOMMU_CONTEXT_SECURE];
 	int secure_vmid = VMID_CP_PIXEL;
 	unsigned int cb_num;
+	int gpuhtw_llc_enable = 1;
+	int stall_disable = 1;
 
 	if (!mmu->secured)
 		return -EPERM;
@@ -1275,6 +1293,20 @@ static int _init_secure_pt(struct kgsl_mmu *mmu, struct kgsl_pagetable *pt)
 		goto done;
 	}
 
+	ret = iommu_domain_set_attr(iommu_pt->domain,
+			DOMAIN_ATTR_USE_UPSTREAM_HINT, &gpuhtw_llc_enable);
+	if (ret) {
+		KGSL_CORE_ERR("set DOMAIN_ATTR_USE_UPSTREAM_HINT failed: %d\n", ret);
+		goto done;
+	}
+
+	ret = iommu_domain_set_attr(iommu_pt->domain,
+			DOMAIN_ATTR_CB_STALL_DISABLE, &stall_disable);
+	if (ret) {
+		KGSL_CORE_ERR("set DOMAIN_ATTR_CB_STALL_DISABLE failed: %d\n", ret);
+		goto done;
+	}
+
 	ctx->cb_num = cb_num;
 	ctx->regbase = iommu->regbase + KGSL_IOMMU_CB0_OFFSET
 			+ (cb_num << KGSL_IOMMU_CB_SHIFT);
@@ -1294,6 +1326,8 @@ static int _init_per_process_pt(struct kgsl_mmu *mmu, struct kgsl_pagetable *pt)
 	struct kgsl_iommu *iommu = _IOMMU_PRIV(mmu);
 	struct kgsl_iommu_context *ctx = &iommu->ctx[KGSL_IOMMU_CONTEXT_USER];
 	int dynamic = 1;
+	int gpuhtw_llc_enable = 1;
+	int stall_disable = 1;
 	unsigned int cb_num = ctx->cb_num;
 
 	iommu_pt = _alloc_pt(ctx->dev, mmu, pt);
@@ -1318,6 +1352,20 @@ static int _init_per_process_pt(struct kgsl_mmu *mmu, struct kgsl_pagetable *pt)
 				DOMAIN_ATTR_PROCID, &pt->name);
 	if (ret) {
 		KGSL_CORE_ERR("set DOMAIN_ATTR_PROCID failed: %d\n", ret);
+		goto done;
+	}
+
+	ret = iommu_domain_set_attr(iommu_pt->domain,
+			DOMAIN_ATTR_USE_UPSTREAM_HINT, &gpuhtw_llc_enable);
+	if (ret) {
+		KGSL_CORE_ERR("set DOMAIN_ATTR_USE_UPSTREAM_HINT failed: %d\n", ret);
+		goto done;
+	}
+
+	ret = iommu_domain_set_attr(iommu_pt->domain,
+			DOMAIN_ATTR_CB_STALL_DISABLE, &stall_disable);
+	if (ret) {
+		KGSL_CORE_ERR("set DOMAIN_ATTR_CB_STALL_DISABLE failed: %d\n", ret);
 		goto done;
 	}
 
