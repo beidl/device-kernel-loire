@@ -222,7 +222,6 @@
 		*/
 		qcom,protect = <0x40000 0x20000>;
 		qcom,micro-mmu-control = <0x6000>;
-		qcom,force-32bit;
 
 		clocks = <&clock_gcc clk_gcc_smmu_cfg_clk>,
 			<&clock_gcc_gfx clk_gcc_gfx_tcu_clk>,
