@@ -295,7 +295,7 @@ static int __flush_iotlb(struct iommu_domain *domain)
 
 	ret = mutex_trylock(&base_priv->flush_mutex);
 	if (!ret) {
-		ret = -EBUSY;
+		ret = -EAGAIN;
 		goto fail_no_unlock;
 	}
 
@@ -350,7 +350,7 @@ static void msm_iommu_tlb_sync(void *cookie)
 
 	ret = mutex_trylock(&base_priv->flush_mutex);
 	if (!ret) {
-		ret = -EBUSY;
+		ret = -EAGAIN;
 		goto fail_no_unlock;
 	}
 
