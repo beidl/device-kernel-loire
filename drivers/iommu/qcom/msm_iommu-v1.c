@@ -293,7 +293,11 @@ static int __flush_iotlb(struct iommu_domain *domain)
 		base_priv = priv;
 	}
 
-	mutex_lock(&base_priv->flush_mutex);
+	ret = mutex_trylock(&base_priv->flush_mutex);
+	if (!ret) {
+		ret = -EBUSY;
+		goto fail_no_unlock;
+	}
 
 	list_for_each_entry(ctx_drvdata, &base_priv->list_attached, attached_elm) {
 		BUG_ON(!ctx_drvdata->pdev || !ctx_drvdata->pdev->dev.parent);
@@ -313,6 +317,9 @@ static int __flush_iotlb(struct iommu_domain *domain)
 fail:
 
 	mutex_unlock(&base_priv->flush_mutex);
+
+fail_no_unlock:
+
 	return ret;
 }
 
@@ -341,7 +348,12 @@ static void msm_iommu_tlb_sync(void *cookie)
 		base_priv = priv;
 	}
 
-	mutex_lock(&base_priv->flush_mutex);
+	ret = mutex_trylock(&base_priv->flush_mutex);
+	if (!ret) {
+		ret = -EBUSY;
+		goto fail_no_unlock;
+	}
+
 	list_for_each_entry(ctx_drvdata, &base_priv->list_attached, attached_elm) {
 		BUG_ON(!ctx_drvdata->pdev || !ctx_drvdata->pdev->dev.parent);
 
@@ -357,10 +369,12 @@ static void msm_iommu_tlb_sync(void *cookie)
 		__disable_clocks(iommu_drvdata);
 	}
 fail:
+	mutex_unlock(&base_priv->flush_mutex);
+
+fail_no_unlock:
 	if (ret)
 		pr_err("%s: ERROR %d !!\n", __func__, ret);
 
-	mutex_unlock(&base_priv->flush_mutex);
 	return;
 }
 
@@ -917,7 +931,6 @@ static void msm_iommu_dynamic_detach(struct iommu_domain *domain,
 
 	priv = to_msm_priv(domain);
 
-	mutex_lock(&priv->flush_mutex);
 	if (ctx_drvdata->attach_count > 0) {
 		ret = __enable_clocks(iommu_drvdata);
 		if (ret)
@@ -935,8 +948,6 @@ static void msm_iommu_dynamic_detach(struct iommu_domain *domain,
 
 	priv->asid = (-1);
 	priv->base = NULL;
-
-	mutex_unlock(&priv->flush_mutex);
 }
 
 static void msm_iommu_detach_dev(struct iommu_domain *domain,
