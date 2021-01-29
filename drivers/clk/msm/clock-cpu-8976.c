@@ -331,7 +331,10 @@ struct cpu_clk_8976 {
 	struct clk c;
 };
 
+
+#ifndef CONFIG_ARCH_SONY_LOIRE
 static void do_nothing(void *unused) { }
+#endif
 #define CPU_LATENCY_NO_L2_PC_US (280)
 
 static inline struct cpu_clk_8976 *to_cpu_clk_8976(struct clk *c)
@@ -353,6 +356,7 @@ static long cpu_clk_8976_round_rate(struct clk *c, unsigned long rate)
 static int cpu_clk_8976_set_rate(struct clk *c, unsigned long rate)
 {
 	int ret = 0;
+#ifndef CONFIG_ARCH_SONY_LOIRE
 	struct cpu_clk_8976 *cpuclk = to_cpu_clk_8976(c);
 	bool hw_low_power_ctrl = cpuclk->hw_low_power_ctrl;
 
@@ -372,12 +376,14 @@ static int cpu_clk_8976_set_rate(struct clk *c, unsigned long rate)
 		smp_call_function_any(&cpuclk->cpumask, do_nothing,
 				NULL, 1);
 	}
-
+#endif
 	ret = clk_set_rate(c->parent, rate);
 
+#ifndef CONFIG_ARCH_SONY_LOIRE
 	/* Remove PM QOS request */
 	if (hw_low_power_ctrl)
 		pm_qos_remove_request(&cpuclk->req);
+#endif
 
 	return ret;
 }
