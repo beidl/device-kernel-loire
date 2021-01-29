@@ -127,6 +127,7 @@ struct msm_iommu_priv {
 	struct io_pgtable_ops *pgtbl_ops;
 	spinlock_t pgtbl_lock;
 	struct mutex init_mutex;
+	struct mutex flush_mutex;
 	u32 procid;
 	u32 asid;
 	u32 attributes;
