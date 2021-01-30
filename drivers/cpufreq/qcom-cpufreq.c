@@ -28,6 +28,7 @@
 #include <linux/platform_device.h>
 #include <linux/of.h>
 #include <trace/events/power.h>
+#include <soc/qcom/pm.h>
 
 static DEFINE_MUTEX(l2bw_lock);
 
@@ -175,15 +176,65 @@ static int msm_cpufreq_init(struct cpufreq_policy *policy)
 	return 0;
 }
 
-static int msm_cpufreq_cpu_callback(struct notifier_block *nfb,
+static int msm_cpufreq_cpu_callback_on(struct notifier_block *nfb,
 		unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
-	int rc;
+	int rc, ret = NOTIFY_OK;
 
 	/* Fail hotplug until this driver can get CPU clocks */
 	if (!hotplug_ready)
 		return NOTIFY_BAD;
+
+	mutex_lock(&msm_cpu_lock);
+
+	switch (action & ~CPU_TASKS_FROZEN) {
+	case CPU_UP_PREPARE:
+		rc = clk_prepare(l2_clk);
+		if (rc < 0)
+			ret = NOTIFY_BAD;
+			goto done;
+		rc = clk_prepare(cpu_clk[cpu]);
+		if (rc < 0) {
+			clk_unprepare(l2_clk);
+			ret = NOTIFY_BAD;
+			goto done;
+		}
+		break;
+
+	case CPU_STARTING:
+		rc = clk_enable(l2_clk);
+		if (rc < 0)
+			ret = NOTIFY_BAD;
+			goto done;
+		rc = clk_enable(cpu_clk[cpu]);
+		if (rc) {
+			clk_disable(l2_clk);
+			ret = NOTIFY_BAD;
+			goto done;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+done:
+	mutex_unlock(&msm_cpu_lock);
+	return ret;
+}
+
+static int msm_cpufreq_cpu_callback_off(struct notifier_block *nfb,
+		unsigned long action, void *hcpu)
+{
+	unsigned int cpu = (unsigned long)hcpu;
+	int ret = NOTIFY_OK;
+
+	/* Fail hotplug until this driver can get CPU clocks */
+	if (!hotplug_ready)
+		return NOTIFY_BAD;
+
+	mutex_lock(&msm_cpu_lock);
 
 	switch (action & ~CPU_TASKS_FROZEN) {
 
@@ -203,37 +254,22 @@ static int msm_cpufreq_cpu_callback(struct notifier_block *nfb,
 		clk_unprepare(cpu_clk[cpu]);
 		clk_unprepare(l2_clk);
 		break;
-	case CPU_UP_PREPARE:
-		rc = clk_prepare(l2_clk);
-		if (rc < 0)
-			return NOTIFY_BAD;
-		rc = clk_prepare(cpu_clk[cpu]);
-		if (rc < 0) {
-			clk_unprepare(l2_clk);
-			return NOTIFY_BAD;
-		}
-		break;
-
-	case CPU_STARTING:
-		rc = clk_enable(l2_clk);
-		if (rc < 0)
-			return NOTIFY_BAD;
-		rc = clk_enable(cpu_clk[cpu]);
-		if (rc) {
-			clk_disable(l2_clk);
-			return NOTIFY_BAD;
-		}
-		break;
-
 	default:
 		break;
 	}
 
-	return NOTIFY_OK;
+	mutex_unlock(&msm_cpu_lock);
+	return ret;
 }
 
-static struct notifier_block __refdata msm_cpufreq_cpu_notifier = {
-	.notifier_call = msm_cpufreq_cpu_callback,
+static struct notifier_block __refdata msm_cpufreq_cpu_notifier_on = {
+	.notifier_call = msm_cpufreq_cpu_callback_on,
+	.priority = INT_MAX,
+};
+
+static struct notifier_block __refdata msm_cpufreq_cpu_notifier_off = {
+	.notifier_call = msm_cpufreq_cpu_callback_off,
+	.priority = -INT_MAX,
 };
 
 static int msm_cpufreq_suspend(void)
@@ -477,7 +513,8 @@ static int __init msm_cpufreq_register(void)
 				   msm_cpufreq_probe);
 	if (rc < 0) {
 		/* Unblock hotplug if msm-cpufreq probe fails */
-		unregister_hotcpu_notifier(&msm_cpufreq_cpu_notifier);
+		unregister_hotcpu_notifier(&msm_cpufreq_cpu_notifier_on);
+		unregister_hotcpu_notifier(&msm_cpufreq_cpu_notifier_off);
 		for_each_possible_cpu(cpu)
 			mutex_destroy(&(per_cpu(suspend_data, cpu).
 					suspend_mutex));
@@ -492,6 +529,8 @@ subsys_initcall(msm_cpufreq_register);
 
 static int __init msm_cpufreq_early_register(void)
 {
-	return register_hotcpu_notifier(&msm_cpufreq_cpu_notifier);
+	mutex_init(&msm_cpu_lock);
+	return register_hotcpu_notifier(&msm_cpufreq_cpu_notifier_on) &&
+	       register_hotcpu_notifier(&msm_cpufreq_cpu_notifier_off);
 }
 core_initcall(msm_cpufreq_early_register);
