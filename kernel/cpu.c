@@ -438,7 +438,8 @@ int cpu_down(unsigned int cpu)
 	}
 
 	err = _cpu_down(cpu, 0);
-
+	if (!err)
+		cpuset_wait_for_hotplug();
 out:
 	cpu_maps_update_done();
 	return err;
