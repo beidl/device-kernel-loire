@@ -319,13 +319,22 @@ static int msm_cpufreq_resume(void)
 	return NOTIFY_DONE;
 }
 
-static int msm_cpufreq_pm_event(struct notifier_block *this,
+static int msm_cpufreq_pm_event_up(struct notifier_block *this,
 				unsigned long event, void *ptr)
 {
 	switch (event) {
 	case PM_POST_HIBERNATION:
 	case PM_POST_SUSPEND:
 		return msm_cpufreq_resume();
+	default:
+		return NOTIFY_DONE;
+	}
+}
+
+static int msm_cpufreq_pm_event_down(struct notifier_block *this,
+				unsigned long event, void *ptr)
+{
+	switch (event) {
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
 		return msm_cpufreq_suspend();
@@ -334,8 +343,14 @@ static int msm_cpufreq_pm_event(struct notifier_block *this,
 	}
 }
 
-static struct notifier_block msm_cpufreq_pm_notifier = {
-	.notifier_call = msm_cpufreq_pm_event,
+static struct notifier_block msm_cpufreq_pm_notifier_up = {
+	.notifier_call = msm_cpufreq_pm_event_up,
+	.priority = INT_MAX,
+};
+
+static struct notifier_block msm_cpufreq_pm_notifier_down = {
+	.notifier_call = msm_cpufreq_pm_event_down,
+	.priority = -INT_MAX,
 };
 
 static struct freq_attr *msm_freq_attr[] = {
@@ -521,7 +536,8 @@ static int __init msm_cpufreq_register(void)
 		return rc;
 	}
 
-	register_pm_notifier(&msm_cpufreq_pm_notifier);
+	register_pm_notifier(&msm_cpufreq_pm_notifier_up);
+	register_pm_notifier(&msm_cpufreq_pm_notifier_down);
 	return cpufreq_register_driver(&msm_cpufreq_driver);
 }
 
