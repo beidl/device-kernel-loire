@@ -76,6 +76,7 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 	int index;
 	struct cpufreq_frequency_table *table;
 
+	mutex_lock(&msm_cpu_lock);
 	mutex_lock(&per_cpu(suspend_data, policy->cpu).suspend_mutex);
 
 	if (target_freq == policy->cur)
@@ -110,6 +111,7 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 			   table[index].driver_data);
 done:
 	mutex_unlock(&per_cpu(suspend_data, policy->cpu).suspend_mutex);
+	mutex_unlock(&msm_cpu_lock);
 	return ret;
 }
 
@@ -186,8 +188,6 @@ static int msm_cpufreq_cpu_callback_on(struct notifier_block *nfb,
 	if (!hotplug_ready)
 		return NOTIFY_BAD;
 
-	mutex_lock(&msm_cpu_lock);
-
 	switch (action & ~CPU_TASKS_FROZEN) {
 	case CPU_UP_PREPARE:
 		rc = clk_prepare(l2_clk);
@@ -220,7 +220,6 @@ static int msm_cpufreq_cpu_callback_on(struct notifier_block *nfb,
 	}
 
 done:
-	mutex_unlock(&msm_cpu_lock);
 	return ret;
 }
 
@@ -233,8 +232,6 @@ static int msm_cpufreq_cpu_callback_off(struct notifier_block *nfb,
 	/* Fail hotplug until this driver can get CPU clocks */
 	if (!hotplug_ready)
 		return NOTIFY_BAD;
-
-	mutex_lock(&msm_cpu_lock);
 
 	switch (action & ~CPU_TASKS_FROZEN) {
 
@@ -258,7 +255,6 @@ static int msm_cpufreq_cpu_callback_off(struct notifier_block *nfb,
 		break;
 	}
 
-	mutex_unlock(&msm_cpu_lock);
 	return ret;
 }
 
