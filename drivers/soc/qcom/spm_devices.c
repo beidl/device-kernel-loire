@@ -34,6 +34,8 @@
 #define ISAR_BIT 3
 #define SPM_EN_BIT 0
 
+struct mutex msm_cpu_lock;
+
 struct msm_spm_power_modes {
 	uint32_t mode;
 	uint32_t ctl;
