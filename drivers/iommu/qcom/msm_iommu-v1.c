@@ -36,6 +36,7 @@
 #include <linux/iopoll.h>
 #include <asm/sizes.h>
 #include <linux/dma-iommu.h>
+#include <asm/smp.h>
 
 #include <linux/amba/bus.h>
 #include <soc/qcom/scm.h>
@@ -278,6 +279,12 @@ static int __flush_iotlb(struct iommu_domain *domain)
 	struct msm_iommu_drvdata *iommu_drvdata;
 	struct msm_iommu_ctx_drvdata *ctx_drvdata;
 	int ret = 0;
+
+	/*
+	 * Kick CPUs for good, even if they're already online,
+	 * Mainly used to prevent screen freezes during kgsl unmapping.
+	 */
+	arch_send_wakeup_ipi_mask(cpu_online_mask);
 
 	/*
 	 * Context banks are properly attached to base domain and not dynamic
