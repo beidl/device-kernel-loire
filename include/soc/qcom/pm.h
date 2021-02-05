@@ -121,7 +121,7 @@ static inline void msm_arch_idle(void)
 	wfi();
 }
 
-#if defined(CONFIG_MSM_PM) && !defined(CONFIG_ARCH_SONY_LOIRE)
+#if defined(CONFIG_MSM_PM) && !defined(CONFIG_ARCH_SONY_LOIRE) && !defined(CONFIG_ARCH_SONY_TONE)
 void msm_pm_set_rpm_wakeup_irq(unsigned int irq);
 int msm_pm_wait_cpu_shutdown(unsigned int cpu);
 int __init msm_pm_sleep_status_init(void);
