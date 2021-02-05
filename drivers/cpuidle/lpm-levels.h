@@ -131,7 +131,7 @@ struct lpm_cluster {
 int set_l2_mode(struct low_power_ops *ops, int mode, bool notify_rpm);
 int set_system_mode(struct low_power_ops *ops, int mode, bool notify_rpm);
 int set_l3_mode(struct low_power_ops *ops, int mode, bool notify_rpm);
-#ifndef CONFIG_ARCH_SONY_LOIRE
+#if !defined(CONFIG_ARCH_SONY_LOIRE) && !defined(CONFIG_ARCH_SONY_TONE)
 void lpm_suspend_wake_time(uint64_t wakeup_time);
 #else
 static inline void lpm_suspend_wake_time(uint64_t wakeup_time) {}
