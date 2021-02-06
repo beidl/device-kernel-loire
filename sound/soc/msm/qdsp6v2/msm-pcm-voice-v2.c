@@ -517,6 +517,11 @@ static int msm_voice_rx_device_mute_put(struct snd_kcontrol *kcontrol,
 	uint32_t session_id = ucontrol->value.integer.value[1];
 	int ramp_duration = ucontrol->value.integer.value[2];
 
+	if (session_id == 0) {
+		pr_warn("%s: Using ALL_SESSION_VSID override", __func__);
+		session_id = ALL_SESSION_VSID;
+	}
+
 	if ((mute < 0) || (mute > 1) || (ramp_duration < 0) ||
 	    (ramp_duration > MAX_RAMP_DURATION)) {
 		pr_err(" %s Invalid arguments", __func__);
