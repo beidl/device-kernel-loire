@@ -417,6 +417,7 @@ static int msm_voice_sidetone_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int last_volume = 0;
 static int msm_voice_gain_put(struct snd_kcontrol *kcontrol,
 			      struct snd_ctl_elem_value *ucontrol)
 {
@@ -424,6 +425,20 @@ static int msm_voice_gain_put(struct snd_kcontrol *kcontrol,
 	int volume = ucontrol->value.integer.value[0];
 	uint32_t session_id = ucontrol->value.integer.value[1];
 	int ramp_duration = ucontrol->value.integer.value[2];
+
+	// For whatever reason the session id set by the HAL is not correctly
+	// received by the kernel, but gets 0x14 instead.
+	if (session_id == 0x14) {
+		// For whatever reason (again) there is a second volume change
+		// sent to the kernel, which overrides it with volume 5 (silent).
+		if (volume == 5 && last_volume != 5) {
+			last_volume = volume;
+			ret = 0;
+			goto done;
+		}
+		session_id = ALL_SESSION_VSID;
+		pr_warn("%s: Using ALL_SESSION_VSID override", __func__);
+	}
 
 	if ((volume < 0) || (ramp_duration < 0)
 		|| (ramp_duration > MAX_RAMP_DURATION)) {
@@ -433,9 +448,10 @@ static int msm_voice_gain_put(struct snd_kcontrol *kcontrol,
 		goto done;
 	}
 
-	pr_debug("%s: volume: %d session_id: %#x ramp_duration: %d\n", __func__,
+	pr_err("%s: volume: %d session_id: %#x ramp_duration: %d\n", __func__,
 		volume, session_id, ramp_duration);
 
+	last_volume = volume;
 	voc_set_rx_vol_step(session_id, RX_PATH, volume, ramp_duration);
 
 done:
