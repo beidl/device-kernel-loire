@@ -2006,7 +2006,7 @@ unlock_and_return:
 	return retflag;
 }
 
-#if defined(CONFIG_MSM_PM) && defined(CONFIG_ARCH_MSM8916)
+#if defined(CONFIG_MSM_PM)
 /**
  * lpm_cpu_hotplug_enter(): Called by dying CPU to terminate in low power mode
  *
