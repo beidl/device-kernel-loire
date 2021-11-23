@@ -313,7 +313,7 @@ static void msm_restart_prepare(const char *cmd)
 		else
 			need_warm_reset = false;
 	}
-#elif defined(TARGET_SOMC_S1BOOT)
+#elif defined(TARGET_SOMC_S1BOOT) || defined(CONFIG_ARCH_SONY_LOIRE)
 	need_warm_reset = true;
 #endif
 
