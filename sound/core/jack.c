@@ -357,8 +357,8 @@ void snd_jack_report(struct snd_jack *jack, int status)
 		return;
 
 #ifdef CONFIG_SWITCH_H2W
-       if (jack->type > 0 && jack->h2w)
-               switch_h2w_report(jack->h2w, status);
+    if (jack->type > 0 && jack->h2w)
+        switch_h2w_report(jack->h2w, status);
 #endif
 
 	list_for_each_entry(jack_kctl, &jack->kctl_list, list)
@@ -367,11 +367,6 @@ void snd_jack_report(struct snd_jack *jack, int status)
 
 	if (!jack->input_dev)
 		return;
-
-#ifdef CONFIG_SWITCH_H2W
-       if (jack->type > 0 && jack->h2w)
-               switch_h2w_report(jack->h2w, status);
-#endif
 
 	for (i = 0; i < ARRAY_SIZE(jack->key); i++) {
 		int testbit = SND_JACK_BTN_0 >> i;
