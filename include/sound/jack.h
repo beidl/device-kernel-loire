@@ -25,6 +25,10 @@
 
 #include <sound/core.h>
 
+#ifdef CONFIG_SWITCH_H2W
+#include <linux/switch_h2w.h>
+#endif
+
 struct input_dev;
 
 /**
@@ -90,6 +94,9 @@ struct snd_jack {
 	unsigned int key[6];   /* Keep in sync with definitions above */
 	void *private_data;
 	void (*private_free)(struct snd_jack *);
+#ifdef CONFIG_SWITCH_H2W
+       struct h2w_info *h2w;
+#endif
 };
 
 #ifdef CONFIG_SND_JACK

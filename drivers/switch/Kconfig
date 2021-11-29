@@ -12,4 +12,10 @@ config SWITCH_GPIO
 	help
 	  Say Y here to enable GPIO based switch support.
 
+config SWITCH_H2W
+	tristate "H2W Headset detection driver"
+	default n
+	help
+	  Say Y here to enable h2w switch support.
+
 endif # SWITCH
