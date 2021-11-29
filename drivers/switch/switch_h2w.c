@@ -34,6 +34,8 @@ enum {
 	HEADSET_NO_MIC = (1 << 1),
 };
 
+static struct h2w_info *init_h = NULL;
+
 static ssize_t print_name(struct switch_dev *sdev, char *buf)
 {
 	switch (switch_get_state(sdev)) {
@@ -56,23 +58,19 @@ static ssize_t print_state(struct switch_dev *sdev, char *buf)
 
 void switch_h2w_report(struct h2w_info *h, int state){
 	printk(KERN_DEBUG "Switch_h2w: new report state: %d\n", state);
-	switch (state) {
-		case SND_JACK_HEADPHONE:
-			h->state = HEADSET_NO_MIC;
-			break;
-		case SND_JACK_HEADSET:
-		case 11:
-			h->state = HEADSET;
-			break;
-		default:
-			h->state = NO_DEVICE;
-			break;
-	}
+    if (state > 0) {
+        h->state = HEADSET;
+    } else if (state == 0) {
+        h->state = NO_DEVICE;
+    }
 	switch_set_state(&h->sdev, h->state);
 }
 EXPORT_SYMBOL(switch_h2w_report);
 
 struct h2w_info *switch_h2w_proble(void){
+    if (init_h)
+        return init_h;
+
 	struct h2w_info *h;
 	int ret;
 
@@ -91,6 +89,7 @@ struct h2w_info *switch_h2w_proble(void){
 	if (ret < 0)
 		printk(KERN_ERR "%s: Failed to register switch device\n", __func__);
 
+    init_h = h;
 	return h;
 }
 EXPORT_SYMBOL(switch_h2w_proble);
